@@ -1,0 +1,12 @@
+title Proxy Data Flow
+participant Client
+participant Proxy
+participant Filter
+participant Backend
+Client->Proxy: frontRequest\n(HttpServerRequest)
+Proxy->Backend: backRequest (HttpClientRequest)
+note over Proxy,Backend: frontPump
+Backend->Filter: backResponse (HttpClientResponse)
+Filter->Proxy: Function(ResponseStream, ResponsStream)
+note over Proxy, Backend: backPump
+Proxy->Client: frontResponse\n(HttpServerResponse)

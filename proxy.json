@@ -1,0 +1,25 @@
+{
+    "port" : 8091,
+    "useSSL" : false,
+    "useProxy" : false,
+    "proxyHost" : "localhost",
+    "proxyPort" : 8081,
+    "targetHost" : "www.spiegel.de",
+    "targetPort" : 80,
+    "filters" : [
+        { "name" : "text/html",
+          "class" : "net.wissel.vertx.proxy.filters.HtmlFilter",
+          "subfilters" : []
+        },
+        { "name" : "text/plain",
+          "class" : "net.wissel.vertx.proxy.filters.TextFilter",
+          "subfilters" : []
+         }
+        ],
+      "deactivatedFilters" :  [
+         { "name" : "application/json",
+           "class" : "net.wissel.vertx.proxy.filters.JsonFilter",
+          "subfilters" : []
+         }
+     ]         
+}
