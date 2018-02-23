@@ -35,7 +35,6 @@ import io.vertx.core.buffer.Buffer;
 public class HtmlFilter extends AbstractFilter {
 
     private Buffer chunkCollector = null;
-    private boolean doesJunkCollection;
 
     public HtmlFilter(final boolean isChunked) {
         super(isChunked);
@@ -51,7 +50,6 @@ public class HtmlFilter extends AbstractFilter {
     @Override
     protected Buffer filterBuffer(final Buffer incomingBuffer) {
         if (this.isChunked) {
-            this.doesJunkCollection = true;
             this.collectJunk(incomingBuffer);
             // Return an empty buffer
             return Buffer.buffer();
@@ -94,11 +92,6 @@ public class HtmlFilter extends AbstractFilter {
     public void addSubfilters(Collection<String> subfilters) {
         // TODO implement subfilter handling here
         
-    }
-
-    @Override
-    public boolean isJunkCompression() {
-        return this.doesJunkCollection;
     }
 
 }

@@ -48,14 +48,5 @@ public interface ProxyFilter extends Function<ReadStream<Buffer>, ReadStream<Buf
 	 * @param subfilters Class name for sub filters
 	 */
     public void addSubfilters(Collection<String> subfilters);
-    
-    
-    /**
-     * Does the filter collect the junk and returns
-     * one result 
-     * @return true if compressing
-     * 
-     */
-    public boolean isJunkCompression();
 
 }

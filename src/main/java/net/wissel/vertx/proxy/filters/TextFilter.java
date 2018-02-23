@@ -54,10 +54,4 @@ public class TextFilter extends AbstractFilter {
         // TODO Auto-generated method stub
         
     }
-
-    @Override
-    public boolean isJunkCompression() {
-        return false;
-    }
-
 }
