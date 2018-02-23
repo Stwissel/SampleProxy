@@ -41,7 +41,7 @@ import io.vertx.core.streams.WriteStream;
  *         returned content from a call to the server
  *
  */
-public class FilterSelector implements Function<HttpClientResponse,ProxyFilter> {
+public class FilterSelector implements Function<HttpRequestResponse,ProxyFilter> {
     
     private class FilterConfig {
         final public String name;
@@ -81,7 +81,8 @@ public class FilterSelector implements Function<HttpClientResponse,ProxyFilter> 
 	 * needs to go into that filter class
 	 */
 	@Override
-	public ProxyFilter apply(HttpClientResponse response) {
+	public ProxyFilter apply(HttpRequestResponse requestresponse) {
+	    HttpClientResponse response = requestresponse.response;
 	    ProxyFilter result = null;
 		boolean isChunked = this.getIsChunked(response);
 		String content = response.headers().get("Content-Type").toLowerCase();
@@ -96,7 +97,7 @@ public class FilterSelector implements Function<HttpClientResponse,ProxyFilter> 
 
 	} 
 	
-	private ProxyFilter getEmptyProxyFilter() {
+	public ProxyFilter getEmptyProxyFilter() {
 	  return new ProxyFilter() {
 
           @Override
@@ -115,13 +116,7 @@ public class FilterSelector implements Function<HttpClientResponse,ProxyFilter> 
         @Override
         public void addSubfilters(Collection<String> subfilters) {
             // No action required
-        }
-
-        @Override
-        public boolean isJunkCompression() {
-            return false;
-        }
-          
+        }          
       };   
 	}
 

@@ -33,6 +33,7 @@ import io.vertx.core.http.HttpVersion;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
+import net.wissel.vertx.proxy.HttpRequestResponse;
 import net.wissel.vertx.proxy.ProxyFilter;
 import net.wissel.vertx.proxy.ProxyRequest;
 import net.wissel.vertx.proxy.ProxyResponse;
@@ -120,7 +121,8 @@ public class ProxyRequestImpl implements ProxyRequest {
 			});
 
 			// Apply body filter based on the type of response
-			ProxyFilter filter = proxy.getResponseFilter(backResponse);
+			HttpRequestResponse hrr = new HttpRequestResponse(backResponse, backRequest);
+			ProxyFilter filter = proxy.getResponseFilter(hrr);
 			ReadStream<Buffer> bodyStream = filter.apply(backResponse);
 
 			if (frontRequest.method() == HttpMethod.HEAD) {
