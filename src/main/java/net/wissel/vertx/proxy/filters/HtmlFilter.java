@@ -21,28 +21,50 @@
  */
 package net.wissel.vertx.proxy.filters;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
-/**
- * @author SINLOANER8
- *
- */
 public class HtmlFilter extends AbstractFilter {
 
-    private Buffer chunkCollector = null;
+    private Buffer                          chunkCollector = null;
+    private final Collection<HtmlSubFilter> subfilters     = new ArrayList<>();
+    private final Logger                    logger         = LoggerFactory.getLogger(this.getClass());
 
     public HtmlFilter(final boolean isChunked) {
         super(isChunked);
     }
 
+    @Override
+    public void addSubfilters(final Collection<String> subfilters) {
+        if (subfilters == null) {
+            return;
+        }
+
+        // Loads all classes for subfilters of html
+        subfilters.forEach(f -> {
+            try {
+                @SuppressWarnings("rawtypes")
+                final Class fClass = Class.forName(f);
+                final HtmlSubFilter result = (HtmlSubFilter) fClass.newInstance();
+                this.subfilters.add(result);
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+                this.logger.error("Class not found: " + f, e);
+            }
+
+        });
+
+    }
+
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * net.wissel.salesforce.proxy.filters.AbstractFilter#filterBuffer(io.vertx.
      * core.buffer.Buffer)
@@ -56,7 +78,7 @@ public class HtmlFilter extends AbstractFilter {
         } else {
             return this.processHTMLBuffer(incomingBuffer);
         }
-    
+
     }
 
     @Override
@@ -80,18 +102,15 @@ public class HtmlFilter extends AbstractFilter {
         final Buffer result = Buffer.buffer(incoming.length());
         final Document doc = Jsoup.parse(incoming.toString());
 
-        // Here goes the changes once we change....
+        // Here goes the changes executed by subfilters
+        this.subfilters.forEach(sf -> {
+            sf.apply(doc);
+        });
 
         // And back out
         result.appendString(doc.outerHtml());
         return result;
 
-    }
-
-    @Override
-    public void addSubfilters(Collection<String> subfilters) {
-        // TODO implement subfilter handling here
-        
     }
 
 }

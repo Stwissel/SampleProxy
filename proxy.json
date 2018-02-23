@@ -7,17 +7,23 @@
     "targetHost" : "www.spiegel.de",
     "targetPort" : 80,
     "filters" : [
-        { "name" : "text/html",
+        { "mimeType" : "text/html",
+          "path" : "/",
+          "regex" : false,
           "class" : "net.wissel.vertx.proxy.filters.HtmlFilter",
-          "subfilters" : []
+          "subfilters" : ["net.wissel.vertx.proxy.filters.html.DropLinks"]
         },
-        { "name" : "text/plain",
+        { "mimeType" : "text/plain",
+          "path" : "*",
+          "regex" : false,
           "class" : "net.wissel.vertx.proxy.filters.TextFilter",
           "subfilters" : []
          }
         ],
       "deactivatedFilters" :  [
-         { "name" : "application/json",
+         { "mimeType" : "application/json",
+           "path" : "*",
+           "regex" : false,
            "class" : "net.wissel.vertx.proxy.filters.JsonFilter",
           "subfilters" : []
          }
