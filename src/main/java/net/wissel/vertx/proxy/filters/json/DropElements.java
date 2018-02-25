@@ -21,7 +21,12 @@
  */
 package net.wissel.vertx.proxy.filters.json;
 
+import java.util.Collection;
+
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import net.wissel.vertx.proxy.filters.JsonSubFilter;
 
 /**
@@ -32,9 +37,33 @@ import net.wissel.vertx.proxy.filters.JsonSubFilter;
  */
 public class DropElements implements JsonSubFilter {
 
+    private final JsonObject parameters;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    
+    public DropElements(final JsonObject parameters) {
+        this.parameters = parameters;
+    }
+
     @Override
     public void apply(final JsonObject source) {
-        // TODO Auto-generated method stub
+        String path = this.parameters.getString("path");
+
+        if (path == null) {
+            source.clear();
+            return;
+        }
+
+        Collection<Object> morituri = JsonSelector.getRequestParam(source, path);
+
+        morituri.forEach(mori -> {
+            if (mori instanceof JsonObject) {
+                ((JsonObject) mori).clear();
+            } else if (mori instanceof JsonArray) {
+                ((JsonArray) mori).clear();
+            } else {
+                this.logger.info("Encountered on JSONPath:"+mori.getClass().getName());
+            }
+        });
 
     }
 
