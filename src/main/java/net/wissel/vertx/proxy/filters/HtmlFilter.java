@@ -21,6 +21,7 @@
  */
 package net.wissel.vertx.proxy.filters;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -28,6 +29,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
@@ -42,22 +44,21 @@ public class HtmlFilter extends AbstractFilter {
     }
 
     @Override
-    public void addSubfilters(final Collection<String> subfilters) {
+    public void addSubfilters(final Collection<JsonObject> subfilters) {
         if (subfilters == null) {
             return;
         }
 
-        // Loads all classes for subfilters of html
+        // Loads all classes for subfilters of html send parameters into class
         subfilters.forEach(f -> {
             try {
                 @SuppressWarnings("rawtypes")
-                final Class fClass = Class.forName(f);
-                final HtmlSubFilter result = (HtmlSubFilter) fClass.newInstance();
+                final Constructor constructor = Class.forName(f.getString("class")).getConstructor(JsonObject.class);
+                final HtmlSubFilter result = (HtmlSubFilter) constructor.newInstance(f.getJsonObject("parameters"));
                 this.subfilters.add(result);
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            } catch (final Exception e) {
                 this.logger.error("Class not found: " + f, e);
             }
-
         });
 
     }

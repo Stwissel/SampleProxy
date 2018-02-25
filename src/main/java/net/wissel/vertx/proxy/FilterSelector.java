@@ -49,7 +49,7 @@ public class FilterSelector implements Function<HttpRequestResponse, ProxyFilter
         final public String             path;
         final public boolean            regex;
         final public String             className;
-        final public Collection<String> subfilters = new ArrayList<>();
+        final public Collection<JsonObject> subfilters = new ArrayList<>();
 
         public FilterConfig(JsonObject filter) {
             this.mimeType = filter.getString("mimeType").toLowerCase();
@@ -63,7 +63,7 @@ public class FilterSelector implements Function<HttpRequestResponse, ProxyFilter
         public void addSubfilters(JsonArray subfilters) {
             if (subfilters != null) {
                 subfilters.forEach(sf -> {
-                    this.subfilters.add(String.valueOf(sf));
+                    this.subfilters.add((JsonObject) sf);
                 });
             }
         }
@@ -130,7 +130,7 @@ public class FilterSelector implements Function<HttpRequestResponse, ProxyFilter
              * @see net.wissel.vertx.proxy.ProxyFilter#addSubfilters(java.util.Collection)
              */
             @Override
-            public void addSubfilters(Collection<String> subfilters) {
+            public void addSubfilters(Collection<JsonObject> subfilters) {
                 // No action required
             }
         };

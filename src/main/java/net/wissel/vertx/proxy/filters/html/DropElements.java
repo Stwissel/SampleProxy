@@ -19,35 +19,39 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.vertx.proxy;
+package net.wissel.vertx.proxy.filters.html;
 
-import java.util.Collection;
-import java.util.function.Function;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.streams.ReadStream;
-import io.vertx.core.streams.WriteStream;
+import net.wissel.vertx.proxy.filters.HtmlSubFilter;
 
 /**
- * @author SINLOANER8
+ * Removes all link targets URLs from a page
+ * @author swissel
  *
  */
-public interface ProxyFilter extends Function<ReadStream<Buffer>, ReadStream<Buffer>> {
-	
-	/**
-	 * Write (eventually) the result of a chunked operation
-	 * @param result
-	 */
-	public void end(WriteStream<Buffer> result);
+public class DropElements implements HtmlSubFilter {
+    
+    private final JsonObject parameters;
+    
+    public DropElements(final JsonObject parameters) {
+        this.parameters = parameters;
+    }
 
-	/**
-	 * Adds the name of specific subfilters that
-	 * need to be processes, so content runs through
-	 * a filter chain
-	 * 
-	 * @param subfilters JsonObject with className and parameters for subfilters
-	 */
-    public void addSubfilters(Collection<JsonObject> subfilters);
+    @Override
+    public void apply(Document doc) {
+        
+        // When no tagname is supplied we drop the body tag
+        // crude but efficient to test
+        final String tagName = this.parameters.getString("name", "body");
+        
+        Elements elements = doc.getElementsByTag(tagName);
+        elements.forEach(e -> {
+            e.remove();
+        });
+
+    }
 
 }

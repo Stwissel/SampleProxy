@@ -24,22 +24,35 @@ package net.wissel.vertx.proxy.filters.html;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
+import io.vertx.core.json.JsonObject;
 import net.wissel.vertx.proxy.filters.HtmlSubFilter;
 
 /**
- * Removes all link targets URLs from a page
+ * Gets rid of all images
+ *
  * @author swissel
  *
  */
 public class DropLinks implements HtmlSubFilter {
+    private final JsonObject parameters;
 
-    @Override
-    public void apply(Document doc) {
-        Elements links = doc.getElementsByTag("a");
-        links.forEach(e -> {
-            e.attr("href", "#");
-        });
-
+    public DropLinks(final JsonObject parameters) {
+        this.parameters = parameters;
     }
 
+    /**
+     * @see net.wissel.vertx.proxy.filters.HtmlSubFilter#apply(org.jsoup.nodes.Document)
+     */
+    @Override
+    public void apply(final Document doc) {
+        final boolean fullRemove = this.parameters.getBoolean("fullremove", false);
+        final Elements links = doc.getElementsByTag("a");
+        links.forEach(e -> {
+            if (fullRemove) {
+                e.remove();
+            } else {
+                e.attr("href", "#");
+            }
+        });
+    }
 }

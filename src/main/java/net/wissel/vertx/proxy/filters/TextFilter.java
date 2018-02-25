@@ -24,6 +24,7 @@ package net.wissel.vertx.proxy.filters;
 import java.util.Collection;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 
 /**
  * @author SINLOANER8
@@ -50,7 +51,7 @@ public class TextFilter extends AbstractFilter {
 	}
 
     @Override
-    public void addSubfilters(Collection<String> subfilters) {
+    public void addSubfilters(Collection<JsonObject> subfilters) {
         // TODO Auto-generated method stub
         
     }
