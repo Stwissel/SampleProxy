@@ -100,7 +100,7 @@ public class Main extends AbstractVerticle {
 		final SfdcHttpProxy proxy = SfdcHttpProxy
 		        .reverseProxy(client)
 		        .target(this.params.getInteger("targetPort", 80), this.params.getString("targetHost","www.spiegel.de"));
-		proxy.filterSelector(new FilterSelector(this.params));
+		proxy.filterSelector(new FilterSelector(this.getVertx(), this.params));
 		
 		HttpServerOptions serverOptions = new HttpServerOptions()
 		        .setPort(this.port)

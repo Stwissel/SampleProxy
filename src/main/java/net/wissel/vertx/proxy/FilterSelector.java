@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
@@ -70,9 +72,10 @@ public class FilterSelector implements Function<HttpRequestResponse, ProxyFilter
     }
 
     private final Map<String, Map<String, FilterConfig>> filterList = new HashMap<>();
+    private final Vertx vertx;
 
-    public FilterSelector(JsonObject config) {
-
+    public FilterSelector(final Vertx vertx, JsonObject config) {
+        this.vertx = vertx;
         JsonArray filterNames = config.getJsonArray("filters");
         filterNames.forEach(o -> {
             final JsonObject filter = (JsonObject) o;
@@ -117,13 +120,13 @@ public class FilterSelector implements Function<HttpRequestResponse, ProxyFilter
         return new ProxyFilter() {
 
             @Override
-            public ReadStream<Buffer> apply(ReadStream<Buffer> t) {
-                return t;
+            public Future<ReadStream<Buffer>> apply(ReadStream<Buffer> t) {
+                return Future.succeededFuture(t);
             }
 
             @Override
-            public void end(WriteStream<Buffer> result) {
-                // no action required
+            public Future<Void> end(WriteStream<Buffer> result) {
+                return Future.succeededFuture();
             }
 
             /**
@@ -175,8 +178,8 @@ public class FilterSelector implements Function<HttpRequestResponse, ProxyFilter
                 if ("*".equals(path) || path.equalsIgnoreCase(url) || this.filterMatch(fc, url) ) {
                     try {
                         @SuppressWarnings("rawtypes")
-                        Constructor constructor = Class.forName(fc.className).getConstructor(Boolean.TYPE);
-                        result = (ProxyFilter) constructor.newInstance(isChunked);
+                        Constructor constructor = Class.forName(fc.className).getConstructor(Vertx.class, Boolean.TYPE);
+                        result = (ProxyFilter) constructor.newInstance(this.vertx, isChunked);
                         result.addSubfilters(fc.subfilters);
                         break;
                     } catch (Exception e) {

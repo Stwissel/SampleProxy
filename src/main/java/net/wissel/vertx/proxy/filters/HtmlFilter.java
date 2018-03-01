@@ -28,24 +28,22 @@ import java.util.Collection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 
 public class HtmlFilter extends AbstractFilter {
 
-    private Buffer                          chunkCollector = null;
-    private final Collection<HtmlSubFilter> subfilters     = new ArrayList<>();
-    private final Logger                    logger         = LoggerFactory.getLogger(this.getClass());
+    private final Collection<HtmlSubFilter> subfilters = new ArrayList<>();
 
-    public HtmlFilter(final boolean isChunked) {
-        super(isChunked);
+    public HtmlFilter(final Vertx vertx, final boolean isChunked) {
+        super(vertx, isChunked);
     }
 
     @Override
     public void addSubfilters(final Collection<JsonObject> subfilters) {
-        if (subfilters == null) {
+        if (subfilters == null || subfilters.isEmpty()) {
             return;
         }
 
@@ -63,54 +61,30 @@ public class HtmlFilter extends AbstractFilter {
 
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * net.wissel.salesforce.proxy.filters.AbstractFilter#filterBuffer(io.vertx.
-     * core.buffer.Buffer)
-     */
     @Override
-    protected Buffer filterBuffer(final Buffer incomingBuffer) {
-        if (this.isChunked) {
-            this.collectJunk(incomingBuffer);
-            // Return an empty buffer
-            return Buffer.buffer();
-        } else {
-            return this.processHTMLBuffer(incomingBuffer);
-        }
+    protected Future<Buffer> processBufferResult(final Buffer incoming) {
 
-    }
+        final Future<Buffer> futureResult = Future.future();
 
-    @Override
-    protected void filterEnd() {
-        // Fill the internal buffer with the transformation
-        if (this.chunkCollector != null) {
-            this.appendInternalBuffer(this.processHTMLBuffer(this.chunkCollector));
-        }
-    }
-
-    private void collectJunk(final Buffer incomingBuffer) {
-        if (this.chunkCollector == null) {
-            this.chunkCollector = Buffer.buffer(incomingBuffer.length() * 2);
-        }
-        this.chunkCollector.appendBuffer(incomingBuffer);
-
-    }
-
-    private Buffer processHTMLBuffer(final Buffer incoming) {
-        // Presuming we need the same space
-        final Buffer result = Buffer.buffer(incoming.length());
-        final Document doc = Jsoup.parse(incoming.toString());
-
-        // Here goes the changes executed by subfilters
-        this.subfilters.forEach(sf -> {
-            sf.apply(doc);
+        // Run in our own thread the actual filters working
+        // on a Jsoup document to execute whatever we have in mind
+       this.getVertx().executeBlocking(future -> {
+            final Document doc = Jsoup.parse(incoming.toString());
+            this.subfilters.forEach(sf -> {
+                sf.apply(doc);
+            });
+            final Buffer b = Buffer.buffer(doc.outerHtml());
+            future.complete(b);
+        }, result -> {
+            if (result.succeeded()) {
+                final Buffer b = (Buffer) result.result();
+                futureResult.complete(b);
+            } else {
+                futureResult.fail(result.cause());
+            }
         });
 
-        // And back out
-        result.appendString(doc.outerHtml());
-        return result;
+        return futureResult;
 
     }
 

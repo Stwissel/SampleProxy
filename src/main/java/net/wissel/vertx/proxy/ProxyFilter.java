@@ -24,6 +24,7 @@ package net.wissel.vertx.proxy;
 import java.util.Collection;
 import java.util.function.Function;
 
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
@@ -33,13 +34,13 @@ import io.vertx.core.streams.WriteStream;
  * @author SINLOANER8
  *
  */
-public interface ProxyFilter extends Function<ReadStream<Buffer>, ReadStream<Buffer>> {
+public interface ProxyFilter extends Function<ReadStream<Buffer>, Future<ReadStream<Buffer>>> {
 	
 	/**
 	 * Write (eventually) the result of a chunked operation
 	 * @param result
 	 */
-	public void end(WriteStream<Buffer> result);
+	public Future<Void> end(WriteStream<Buffer> result);
 
 	/**
 	 * Adds the name of specific subfilters that

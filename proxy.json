@@ -15,7 +15,9 @@
         "subfilters": [
         {
             "class": "net.wissel.vertx.proxy.filters.html.DropElements",
-            "parameters": {}
+            "parameters": {
+                "name" : "hr"
+            }
         },
         {
             "class": "net.wissel.vertx.proxy.filters.html.DropElements",
