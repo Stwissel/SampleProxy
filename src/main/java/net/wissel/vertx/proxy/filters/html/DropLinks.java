@@ -19,55 +19,40 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.vertx.proxy.filters;
+package net.wissel.vertx.proxy.filters.html;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collection;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import net.wissel.vertx.proxy.filters.HtmlSubFilter;
 
 /**
- * @author SINLOANER8
+ * Gets rid of all images
+ *
+ * @author swissel
  *
  */
-public class TextFilter extends AbstractFilter {
-    
-    private final ArrayList<TextSubFilter> subfilters = new ArrayList<>();
+public class DropLinks implements HtmlSubFilter {
+    private final JsonObject parameters;
 
-	public TextFilter(final Vertx vertx, boolean isChunked) {
-		super(vertx, isChunked);
-	}
-
-    @Override
-    public void addSubfilters(Collection<JsonObject> subfilters) {
-        if (subfilters == null || subfilters.isEmpty()) {
-            return;
-        }
-
-        // Loads all classes for subfilters of html send parameters into class
-        subfilters.forEach(f -> {
-            try {
-                @SuppressWarnings("rawtypes")
-                final Constructor constructor = Class.forName(f.getString("class")).getConstructor(JsonObject.class);
-                final TextSubFilter result = (TextSubFilter) constructor.newInstance(f.getJsonObject("parameters"));
-                this.subfilters.add(result);
-            } catch (final Exception e) {
-                this.logger.error("Class not found: " + f, e);
-            }
-        });
-        
+    public DropLinks(final JsonObject parameters) {
+        this.parameters = parameters;
     }
 
+    /**
+     * @see net.wissel.vertx.proxy.filters.HtmlSubFilter#apply(org.jsoup.nodes.Document)
+     */
     @Override
-    protected Future<Buffer> processBufferResult(Buffer incomingBuffer) {
-        String curValue = incomingBuffer.toString();
-        for (int i = 0; i < this.subfilters.size(); i++) {
-            curValue = this.subfilters.get(i).apply(curValue);
-        }
-        return Future.succeededFuture(Buffer.buffer(curValue));
+    public void apply(final Document doc) {
+        final boolean fullRemove = this.parameters.getBoolean("fullremove", false);
+        final Elements links = doc.getElementsByTag("a");
+        links.forEach(e -> {
+            if (fullRemove) {
+                e.remove();
+            } else {
+                e.attr("href", "#");
+            }
+        });
     }
 }

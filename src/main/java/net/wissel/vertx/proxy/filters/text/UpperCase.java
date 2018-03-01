@@ -19,55 +19,25 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.vertx.proxy.filters;
+package net.wissel.vertx.proxy.filters.text;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import net.wissel.vertx.proxy.filters.TextSubFilter;
 
 /**
- * @author SINLOANER8
+ * Uppercase everything
+ *
+ * @author swissel
  *
  */
-public class TextFilter extends AbstractFilter {
-    
-    private final ArrayList<TextSubFilter> subfilters = new ArrayList<>();
+public class UpperCase implements TextSubFilter {
 
-	public TextFilter(final Vertx vertx, boolean isChunked) {
-		super(vertx, isChunked);
-	}
-
-    @Override
-    public void addSubfilters(Collection<JsonObject> subfilters) {
-        if (subfilters == null || subfilters.isEmpty()) {
-            return;
-        }
-
-        // Loads all classes for subfilters of html send parameters into class
-        subfilters.forEach(f -> {
-            try {
-                @SuppressWarnings("rawtypes")
-                final Constructor constructor = Class.forName(f.getString("class")).getConstructor(JsonObject.class);
-                final TextSubFilter result = (TextSubFilter) constructor.newInstance(f.getJsonObject("parameters"));
-                this.subfilters.add(result);
-            } catch (final Exception e) {
-                this.logger.error("Class not found: " + f, e);
-            }
-        });
-        
+    public UpperCase(final JsonObject parameters) {
+        // No Action
     }
 
     @Override
-    protected Future<Buffer> processBufferResult(Buffer incomingBuffer) {
-        String curValue = incomingBuffer.toString();
-        for (int i = 0; i < this.subfilters.size(); i++) {
-            curValue = this.subfilters.get(i).apply(curValue);
-        }
-        return Future.succeededFuture(Buffer.buffer(curValue));
+    public String apply(final String incoming) {
+        return incoming.toUpperCase();
     }
 }

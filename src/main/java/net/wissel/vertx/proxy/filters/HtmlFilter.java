@@ -21,84 +21,71 @@
  */
 package net.wissel.vertx.proxy.filters;
 
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 
-/**
- * @author SINLOANER8
- *
- */
 public class HtmlFilter extends AbstractFilter {
 
-    private Buffer chunkCollector = null;
-    private boolean doesJunkCollection;
+    private final Collection<HtmlSubFilter> subfilters = new ArrayList<>();
 
-    public HtmlFilter(final boolean isChunked) {
-        super(isChunked);
+    public HtmlFilter(final Vertx vertx, final boolean isChunked) {
+        super(vertx, isChunked);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * net.wissel.salesforce.proxy.filters.AbstractFilter#filterBuffer(io.vertx.
-     * core.buffer.Buffer)
-     */
     @Override
-    protected Buffer filterBuffer(final Buffer incomingBuffer) {
-        if (this.isChunked) {
-            this.doesJunkCollection = true;
-            this.collectJunk(incomingBuffer);
-            // Return an empty buffer
-            return Buffer.buffer();
-        } else {
-            return this.processHTMLBuffer(incomingBuffer);
+    public void addSubfilters(final Collection<JsonObject> subfilters) {
+        if (subfilters == null || subfilters.isEmpty()) {
+            return;
         }
-    
-    }
 
-    @Override
-    protected void filterEnd() {
-        // Fill the internal buffer with the transformation
-        if (this.chunkCollector != null) {
-            this.appendInternalBuffer(this.processHTMLBuffer(this.chunkCollector));
-        }
-    }
-
-    private void collectJunk(final Buffer incomingBuffer) {
-        if (this.chunkCollector == null) {
-            this.chunkCollector = Buffer.buffer(incomingBuffer.length() * 2);
-        }
-        this.chunkCollector.appendBuffer(incomingBuffer);
-
-    }
-
-    private Buffer processHTMLBuffer(final Buffer incoming) {
-        // Presuming we need the same space
-        final Buffer result = Buffer.buffer(incoming.length());
-        final Document doc = Jsoup.parse(incoming.toString());
-
-        // Here goes the changes once we change....
-
-        // And back out
-        result.appendString(doc.outerHtml());
-        return result;
+        // Loads all classes for subfilters of html send parameters into class
+        subfilters.forEach(f -> {
+            try {
+                @SuppressWarnings("rawtypes")
+                final Constructor constructor = Class.forName(f.getString("class")).getConstructor(JsonObject.class);
+                final HtmlSubFilter result = (HtmlSubFilter) constructor.newInstance(f.getJsonObject("parameters"));
+                this.subfilters.add(result);
+            } catch (final Exception e) {
+                this.logger.error("Class not found: " + f, e);
+            }
+        });
 
     }
 
     @Override
-    public void addSubfilters(Collection<String> subfilters) {
-        // TODO implement subfilter handling here
-        
-    }
+    protected Future<Buffer> processBufferResult(final Buffer incoming) {
 
-    @Override
-    public boolean isJunkCompression() {
-        return this.doesJunkCollection;
+        final Future<Buffer> futureResult = Future.future();
+
+        // Run in our own thread the actual filters working
+        // on a Jsoup document to execute whatever we have in mind
+       this.getVertx().executeBlocking(future -> {
+            final Document doc = Jsoup.parse(incoming.toString());
+            this.subfilters.forEach(sf -> {
+                sf.apply(doc);
+            });
+            final Buffer b = Buffer.buffer(doc.outerHtml());
+            future.complete(b);
+        }, result -> {
+            if (result.succeeded()) {
+                final Buffer b = (Buffer) result.result();
+                futureResult.complete(b);
+            } else {
+                futureResult.fail(result.cause());
+            }
+        });
+
+        return futureResult;
+
     }
 
 }

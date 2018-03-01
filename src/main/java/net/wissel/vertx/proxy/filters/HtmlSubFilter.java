@@ -21,53 +21,20 @@
  */
 package net.wissel.vertx.proxy.filters;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
+import org.jsoup.nodes.Document;
 
 /**
- * @author SINLOANER8
+ * Interface for filters that operate on HTML documents
+ * 
+ * @author swissel
  *
  */
-public class TextFilter extends AbstractFilter {
+public interface HtmlSubFilter {
     
-    private final ArrayList<TextSubFilter> subfilters = new ArrayList<>();
+    /**
+     * Manipulates a HTML document
+     * @param doc the html document
+     */
+    public void apply(final Document doc);
 
-	public TextFilter(final Vertx vertx, boolean isChunked) {
-		super(vertx, isChunked);
-	}
-
-    @Override
-    public void addSubfilters(Collection<JsonObject> subfilters) {
-        if (subfilters == null || subfilters.isEmpty()) {
-            return;
-        }
-
-        // Loads all classes for subfilters of html send parameters into class
-        subfilters.forEach(f -> {
-            try {
-                @SuppressWarnings("rawtypes")
-                final Constructor constructor = Class.forName(f.getString("class")).getConstructor(JsonObject.class);
-                final TextSubFilter result = (TextSubFilter) constructor.newInstance(f.getJsonObject("parameters"));
-                this.subfilters.add(result);
-            } catch (final Exception e) {
-                this.logger.error("Class not found: " + f, e);
-            }
-        });
-        
-    }
-
-    @Override
-    protected Future<Buffer> processBufferResult(Buffer incomingBuffer) {
-        String curValue = incomingBuffer.toString();
-        for (int i = 0; i < this.subfilters.size(); i++) {
-            curValue = this.subfilters.get(i).apply(curValue);
-        }
-        return Future.succeededFuture(Buffer.buffer(curValue));
-    }
 }

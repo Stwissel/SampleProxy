@@ -31,20 +31,22 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
 /**
- * @author SINLOANER8
+ * Filters out JSON after assembling it into a JsonObject
+ *
+ * @author swissel
  *
  */
-public class TextFilter extends AbstractFilter {
-    
-    private final ArrayList<TextSubFilter> subfilters = new ArrayList<>();
+public class JsonFilter extends AbstractFilter {
 
-	public TextFilter(final Vertx vertx, boolean isChunked) {
-		super(vertx, isChunked);
-	}
+    private final Collection<JsonSubFilter> subfilters = new ArrayList<>();
+
+    public JsonFilter(final Vertx vertx, final boolean isChunked) {
+        super(vertx, isChunked);
+    }
 
     @Override
-    public void addSubfilters(Collection<JsonObject> subfilters) {
-        if (subfilters == null || subfilters.isEmpty()) {
+    public void addSubfilters(final Collection<JsonObject> subfilters) {
+        if (subfilters == null) {
             return;
         }
 
@@ -53,21 +55,38 @@ public class TextFilter extends AbstractFilter {
             try {
                 @SuppressWarnings("rawtypes")
                 final Constructor constructor = Class.forName(f.getString("class")).getConstructor(JsonObject.class);
-                final TextSubFilter result = (TextSubFilter) constructor.newInstance(f.getJsonObject("parameters"));
+                final JsonSubFilter result = (JsonSubFilter) constructor.newInstance(f.getJsonObject("parameters"));
                 this.subfilters.add(result);
             } catch (final Exception e) {
                 this.logger.error("Class not found: " + f, e);
             }
         });
-        
     }
 
     @Override
-    protected Future<Buffer> processBufferResult(Buffer incomingBuffer) {
-        String curValue = incomingBuffer.toString();
-        for (int i = 0; i < this.subfilters.size(); i++) {
-            curValue = this.subfilters.get(i).apply(curValue);
-        }
-        return Future.succeededFuture(Buffer.buffer(curValue));
+    protected Future<Buffer> processBufferResult(final Buffer incoming) {
+        final Future<Buffer> futureResult = Future.future();
+
+        // Run in our own thread the actual filters working
+        // on a Jsoup document to execute whatever we have in mind
+        this.getVertx().executeBlocking(future -> {
+            final JsonObject json = new JsonObject(incoming);
+            this.subfilters.forEach(sf -> {
+                sf.apply(json);
+            });
+            final Buffer b = Buffer.buffer(json.encode());
+            future.complete(b);
+        }, result -> {
+            if (result.succeeded()) {
+                final Buffer b = (Buffer) result.result();
+                futureResult.complete(b);
+            } else {
+                futureResult.fail(result.cause());
+            }
+        });
+
+        return futureResult;
+
     }
+
 }

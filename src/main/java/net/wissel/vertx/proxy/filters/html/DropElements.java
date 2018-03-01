@@ -19,55 +19,39 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.vertx.proxy.filters;
+package net.wissel.vertx.proxy.filters.html;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collection;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import net.wissel.vertx.proxy.filters.HtmlSubFilter;
 
 /**
- * @author SINLOANER8
+ * Removes all link targets URLs from a page
+ * @author swissel
  *
  */
-public class TextFilter extends AbstractFilter {
+public class DropElements implements HtmlSubFilter {
     
-    private final ArrayList<TextSubFilter> subfilters = new ArrayList<>();
-
-	public TextFilter(final Vertx vertx, boolean isChunked) {
-		super(vertx, isChunked);
-	}
+    private final JsonObject parameters;
+    
+    public DropElements(final JsonObject parameters) {
+        this.parameters = parameters;
+    }
 
     @Override
-    public void addSubfilters(Collection<JsonObject> subfilters) {
-        if (subfilters == null || subfilters.isEmpty()) {
-            return;
-        }
-
-        // Loads all classes for subfilters of html send parameters into class
-        subfilters.forEach(f -> {
-            try {
-                @SuppressWarnings("rawtypes")
-                final Constructor constructor = Class.forName(f.getString("class")).getConstructor(JsonObject.class);
-                final TextSubFilter result = (TextSubFilter) constructor.newInstance(f.getJsonObject("parameters"));
-                this.subfilters.add(result);
-            } catch (final Exception e) {
-                this.logger.error("Class not found: " + f, e);
-            }
-        });
+    public void apply(Document doc) {
         
+        // When no tagname is supplied we drop the body tag
+        // crude but efficient to test
+        final String tagName = this.parameters.getString("name", "body");
+        
+        Elements elements = doc.getElementsByTag(tagName);
+        elements.forEach(e -> {
+            e.remove();
+        });
+
     }
 
-    @Override
-    protected Future<Buffer> processBufferResult(Buffer incomingBuffer) {
-        String curValue = incomingBuffer.toString();
-        for (int i = 0; i < this.subfilters.size(); i++) {
-            curValue = this.subfilters.get(i).apply(curValue);
-        }
-        return Future.succeededFuture(Buffer.buffer(curValue));
-    }
 }

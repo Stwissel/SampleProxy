@@ -17,7 +17,6 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.net.SocketAddress;
 import net.wissel.vertx.proxy.impl.SfdcHttpProxyImpl;
@@ -28,36 +27,36 @@ import net.wissel.vertx.proxy.impl.SfdcHttpProxyImpl;
 @VertxGen
 public interface SfdcHttpProxy extends Handler<HttpServerRequest> {
 
-	static SfdcHttpProxy reverseProxy(HttpClient client) {
-		return new SfdcHttpProxyImpl(client);
-	}
+    static SfdcHttpProxy reverseProxy(final HttpClient client) {
+        return new SfdcHttpProxyImpl(client);
+    }
 
-	@Fluent
-	SfdcHttpProxy filterSelector(Function<HttpClientResponse, ProxyFilter> filterSelector);
+    @Fluent
+    SfdcHttpProxy filterSelector(Function<HttpRequestResponse, ProxyFilter> filterSelector);
 
-	/**
-	 * Based on content of the response, mainly header or URI values a different
-	 * content filter can be used
-	 *
-	 * @param response
-	 *            from the request to server
-	 * @return a function to transform the ReadStream
-	 *
-	 */
-	ProxyFilter getResponseFilter(HttpClientResponse response);
+    /**
+     * Based on content of the response, mainly header or URI values a different
+     * content filter can be used
+     *
+     * @param response
+     *            from the request to server
+     * @return a function to transform the ReadStream
+     *
+     */
+    ProxyFilter getResponseFilter(HttpRequestResponse response);
 
-	@Override
-	void handle(HttpServerRequest request);
+    @Override
+    void handle(HttpServerRequest request);
 
-	ProxyRequest proxy(HttpServerRequest request, SocketAddress target);
+    ProxyRequest proxy(HttpServerRequest request, SocketAddress target);
 
-	@Fluent
-	SfdcHttpProxy selector(Function<HttpServerRequest, Future<SocketAddress>> selector);
+    @Fluent
+    SfdcHttpProxy selector(Function<HttpServerRequest, Future<SocketAddress>> selector);
 
-	@Fluent
-	SfdcHttpProxy target(int port, String host);
+    @Fluent
+    SfdcHttpProxy target(int port, String host);
 
-	@Fluent
-	SfdcHttpProxy target(SocketAddress address);
+    @Fluent
+    SfdcHttpProxy target(SocketAddress address);
 
 }

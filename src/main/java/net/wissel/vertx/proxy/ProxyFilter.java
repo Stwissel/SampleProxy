@@ -24,7 +24,9 @@ package net.wissel.vertx.proxy;
 import java.util.Collection;
 import java.util.function.Function;
 
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 
@@ -32,30 +34,21 @@ import io.vertx.core.streams.WriteStream;
  * @author SINLOANER8
  *
  */
-public interface ProxyFilter extends Function<ReadStream<Buffer>, ReadStream<Buffer>> {
+public interface ProxyFilter extends Function<ReadStream<Buffer>, Future<ReadStream<Buffer>>> {
 	
 	/**
 	 * Write (eventually) the result of a chunked operation
 	 * @param result
 	 */
-	public void end(WriteStream<Buffer> result);
+	public Future<Void> end(WriteStream<Buffer> result);
 
 	/**
 	 * Adds the name of specific subfilters that
 	 * need to be processes, so content runs through
 	 * a filter chain
 	 * 
-	 * @param subfilters Class name for sub filters
+	 * @param subfilters JsonObject with className and parameters for subfilters
 	 */
-    public void addSubfilters(Collection<String> subfilters);
-    
-    
-    /**
-     * Does the filter collect the junk and returns
-     * one result 
-     * @return true if compressing
-     * 
-     */
-    public boolean isJunkCompression();
+    public void addSubfilters(Collection<JsonObject> subfilters);
 
 }

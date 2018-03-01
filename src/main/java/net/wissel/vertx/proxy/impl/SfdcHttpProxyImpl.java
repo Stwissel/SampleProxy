@@ -33,6 +33,7 @@ import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.net.impl.SocketAddressImpl;
 import io.vertx.core.streams.ReadStream;
+import net.wissel.vertx.proxy.HttpRequestResponse;
 import net.wissel.vertx.proxy.ProxyFilter;
 import net.wissel.vertx.proxy.ProxyRequest;
 import net.wissel.vertx.proxy.ProxyResponse;
@@ -461,21 +462,21 @@ public class SfdcHttpProxyImpl implements SfdcHttpProxy {
 			.failedFuture("No target available");
 	private final Map<String, Resource> cache = new HashMap<>();
 
-	private Function<HttpClientResponse, ProxyFilter> localFilterSelector = null;
+	private Function<HttpRequestResponse, ProxyFilter> localFilterSelector = null;
 
 	public SfdcHttpProxyImpl(HttpClient client) {
 		this.client = client;
 	}
 
 	@Override
-	public SfdcHttpProxy filterSelector(Function<HttpClientResponse, ProxyFilter> filterSelector) {
-		localFilterSelector = filterSelector;
+	public SfdcHttpProxy filterSelector(Function<HttpRequestResponse, ProxyFilter> filterSelector) {
+		this.localFilterSelector = filterSelector;
 		return this;
 	}
 
 	@Override
-	public ProxyFilter getResponseFilter(HttpClientResponse response) {
-		return localFilterSelector.apply(response);
+	public ProxyFilter getResponseFilter(HttpRequestResponse requestResponse) {
+		return this.localFilterSelector.apply(requestResponse);
 	}
 
 	@Override
@@ -547,6 +548,7 @@ public class SfdcHttpProxyImpl implements SfdcHttpProxy {
 									proxyResp.maxAge());
 							// TODO do we need a body filter here?
 							// proxyResp.bodyFilter(res);
+							this.cache.put(request.absoluteURI(), res);
 						}
 						proxyResp.send(ar2 -> {
 							// Done
