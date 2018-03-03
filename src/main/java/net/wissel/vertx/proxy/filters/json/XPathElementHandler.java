@@ -21,39 +21,33 @@
  */
 package net.wissel.vertx.proxy.filters.json;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import net.wissel.vertx.proxy.filters.JsonSubFilter;
 
 /**
- * Manipulates elements in in a JsonObject Possible actions are: - remove:
- * Element get deleted - clear: Element gets replaced by an empty element
- * (JsonObject/JsonArray) - mask: replace content with **** to some extend
- * 
  * @author swissel
  *
  */
-public class SimpleElementHandler extends AbstractElementHandler implements JsonSubFilter {
+public class XPathElementHandler extends AbstractElementHandler implements JsonSubFilter {
 
-    //
-    public SimpleElementHandler(final JsonObject parameters) {
+    public XPathElementHandler(JsonObject parameters) {
         super(parameters);
     }
 
     @Override
-    protected Collection<Object> getResultCollection(String path, JsonObject source) {
-        return JsonSelector.getRequestParam(source, path);
+    protected String getLeafName(String path, SimpleElementHandlerOptions opts) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override
-    protected String getLeafName(String path, SimpleElementHandlerOptions opts) {
-        return ("".equals(path) || "/".equals(path) || path.lastIndexOf("/") < 0)
-        ? ""
-        : path.substring(path.lastIndexOf("/"));
+    protected Collection<Object> getResultCollection(String path, JsonObject source) {
+        // TODO Auto-generated method stub
+        return null;
     }
+
+   
+
 }
