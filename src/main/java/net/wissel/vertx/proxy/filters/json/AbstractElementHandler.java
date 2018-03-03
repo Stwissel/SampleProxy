@@ -43,13 +43,13 @@ import net.wissel.vertx.proxy.filters.JsonSubFilter;
 public abstract class AbstractElementHandler implements JsonSubFilter {
 
     // Processing options
-    protected class SimpleElementHandlerOptions {
+    protected class ElementHandlerOptions {
         public final String             operation;
         public final int                unmaskedCount;
         public final String             maskPattern;
         public final Collection<String> path = new ArrayList<>();
 
-        public SimpleElementHandlerOptions(final JsonObject parameters) {
+        public ElementHandlerOptions(final JsonObject parameters) {
             this.operation = parameters.getString("action", "remove");
             this.unmaskedCount = parameters.getInteger("unmaskedCount", 2);
             this.maskPattern = parameters.getString("maskPattern", "****");
@@ -62,11 +62,11 @@ public abstract class AbstractElementHandler implements JsonSubFilter {
         }
     }
 
-    protected final SimpleElementHandlerOptions options;
+    protected final ElementHandlerOptions options;
     protected final Logger                      logger = LoggerFactory.getLogger(this.getClass());
 
     public AbstractElementHandler(final JsonObject parameters) {
-        this.options = new SimpleElementHandlerOptions(parameters);
+        this.options = new ElementHandlerOptions(parameters);
     }
 
     @Override
@@ -76,34 +76,31 @@ public abstract class AbstractElementHandler implements JsonSubFilter {
             source.clear();
             return;
         }
-
-        this.options.path.forEach(path -> {
-            // the leafName is the actual element we are after
-            final String leafName = this.getLeafName(path, this.options);
-            final Collection<Object> morituri = this.getResultCollection(path, source);
-            morituri.stream()
-                    .filter(mori -> (mori instanceof JsonObject))
-                    .forEach(mori -> {
-                        final JsonObject json = (JsonObject) mori;
-                        switch (this.options.operation) {
-                            case "clear":
-                                this.clearContent(json, leafName);
-                                break;
-                            case "mask":
-                                this.maskContent(json, leafName);
-                                break;
-
-                            default:
-                                this.removeContent(json, leafName);
-                                break;
-                        }
-                    });
-        });
     }
 
-    protected abstract String getLeafName(String path, SimpleElementHandlerOptions opts);
+    protected void handleResultCollection(final String path, final Collection<Object> morituri) {
+        // the leafName is the actual element we are after
+        final String leafName = this.getLeafName(path, this.options);
+        morituri.stream()
+                .filter(mori -> (mori instanceof JsonObject))
+                .forEach(mori -> {
+                    final JsonObject json = (JsonObject) mori;
+                    switch (this.options.operation) {
+                        case "clear":
+                            this.clearContent(json, leafName);
+                            break;
+                        case "mask":
+                            this.maskContent(json, leafName);
+                            break;
 
-    protected abstract Collection<Object> getResultCollection(String path, JsonObject source);
+                        default:
+                            this.removeContent(json, leafName);
+                            break;
+                    }
+                });
+    }
+
+    protected abstract String getLeafName(String path,ElementHandlerOptions opts);
 
     // Leaves the element in place but removes the value
     // String, JsonObjects, JsonArray
@@ -147,7 +144,7 @@ public abstract class AbstractElementHandler implements JsonSubFilter {
 
     }
 
-    private String maskString(final Object objectSource, final String pattern, final int length) {
+    protected String maskString(final Object objectSource, final String pattern, final int length) {
         final String source = String.valueOf(objectSource);
         final StringBuilder result = new StringBuilder();
 

@@ -62,7 +62,7 @@ public class TestJsonSelector {
     
     private void echoFindings(final JsonObject json, final String path, final PrintStream out) {
         out.println("--------------"+path+"--------------");
-        Collection<Object> results = JsonSelector.getRequestParam(json, path);
+        Collection<Object> results = JsonSelector.getElementsByPath(json, path);
         out.println("Number of elements found:"+results.size());
         results.forEach(o -> {
             out.println(o.getClass().getName());

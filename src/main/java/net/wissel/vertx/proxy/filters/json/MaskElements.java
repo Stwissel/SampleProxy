@@ -56,7 +56,7 @@ public class MaskElements implements JsonSubFilter {
         String pathAbove = path.substring(0,path.lastIndexOf("/"));
         String valueName = path.substring(path.lastIndexOf("/"));
 
-        Collection<Object> morituri = JsonSelector.getRequestParam(source, pathAbove);
+        Collection<Object> morituri = JsonSelector.getElementsByPath(source, pathAbove);
       
         morituri.forEach(mori -> {
             if (mori instanceof JsonObject) {

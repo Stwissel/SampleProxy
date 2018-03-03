@@ -54,9 +54,44 @@ The JSoup document is passed to the subfilters for processing. Current subfilter
 ### net.wissel.vertx.proxy.filters.JsonFilter
 
 Processes JSON resources by converting them to a JsonObject (careful when server serves large amount of Json). Current subfilters:
+The available handler derive from the AbstractElementHandler and differ in the way how they select the elements to act on. Easy to extend
 
-- net.wissel.vertx.proxy.filters.DropElements: requires parameter `path` to specify the Json target. Removes the entry
-- net.wissel.vertx.proxy.filters.MaskElements:  requires parameter `path` to specify the Json target. Masks the entry
+#### net.wissel.vertx.proxy.filters.SimpleElementHandler
+
+Required parameters:
+
+- action (required):
+  - mask: hide with mask patter 
+  - clear: remove value, leave element empty
+  - remove: remove element
+- maskPattern (optional) : what to show instead of String, default: "****", fixed lenght 
+- unmaskedCount (optional): how many letter in front & behind to show, default: 2
+- path (required): Array of simple path expressions to select elements
+  - full path starts from root /
+  - Arrays are automatically parsed for each member
+  - * stands for "any element"
+  
+ For more complex queries including value comparison, use XpathElementHandler
+
+#### net.wissel.vertx.proxy.filters.XpathElementHandler
+
+Required parameters:
+
+- action (required):
+  - mask: hide with mask patter 
+  - clear: remove value, leave element empty
+  - remove: remove element
+- maskPattern (optional) : what to show instead of String, default: "****", fixed lenght 
+- unmaskedCount (optional): how many letter in front & behind to show, default: 2
+- path (required): Array of XPath expressions to select the Nodes, [explained here](https://wissel.net/blog/2018/02/query-a-json-object-like-xpath.html)
+
+#### net.wissel.vertx.proxy.filters.XsltElementHandler
+
+Transforms the incoming Json to XML ([see here](https://wissel.net/blog/2018/02/query-a-json-object-like-xpath.html)), applies a stylesheet and transforms it back.
+It's the responsibility of the stylesheet writer to provide a result that can be translated back. Can be used for complex manipulations (or keyword replacements) ;-)
+Required parameters:
+
+- styleSheet: path to the stylesheet for transformation. Local only, no URLs
 
 ### net.wissel.vertx.proxy.filters.TextFilter
 

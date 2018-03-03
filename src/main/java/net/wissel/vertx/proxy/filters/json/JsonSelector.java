@@ -52,7 +52,8 @@ public class JsonSelector {
 
     public static Logger logger = LoggerFactory.getLogger("JsonSelector");
 
-    public static Collection<Object> getRequestParam(final JsonObject source, final String path) {
+
+    public static Collection<Object> getElementsByPath(final JsonObject source, final String path) {
         final Collection<Object> result = new ArrayList<>();
         // Special case if path is empty or points to the root
         // We return the whole object
