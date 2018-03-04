@@ -48,20 +48,32 @@
         "class": "net.wissel.vertx.proxy.filters.JsonFilter",
         "subfilters": [
         {
-            "class": "net.wissel.vertx.proxy.filters.json.DropElements",
+            "class": "net.wissel.vertx.proxy.filters.json.SimpleElementHandler",
             "parameters":
             {
-                "path": "/something"
+                "action" : "mask",
+                "maskPattern" : "****",
+                "unmaskedCount": 2,
+                "path": ["/eMail","/customers/fullName"]
             }
         },
         {
-            "class": "net.wissel.vertx.proxy.filters.json.MaskElements",
+            "class": "net.wissel.vertx.proxy.filters.json.SimpleElementHandler",
             "parameters":
             {
-                "path": "/something"
+                "action" : "clear",
+                "path": ["/status","/grade"]
+            }
+        },
+        {
+            "class": "net.wissel.vertx.proxy.filters.json.SimpleElementHandler",
+            "parameters":
+            {
+                "action" : "remove",
+                "path": ["/remarks"]
             }
         }
-        ]
+       ]
     }],
     "deactivatedFilters": []
 }

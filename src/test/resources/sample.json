@@ -1,0 +1,26 @@
+{
+  "name" : "Peter",
+  "job" : "Spiderman",
+  "enemies" : [
+   		"Venom",
+    	"Sandman",
+    	 {
+    		"lair" : "Skull island",
+    		"name" : "Dr. No"
+  		},
+  		{
+            "lair" : "Skull island",
+            "name" : "Dr. No"
+        },
+  		true,
+  		123
+  	],
+  	"movie" : "Spiderman homecoming",
+  	"happyLogic" : true,
+  	"sadlogic" : false,
+  	"universe" : 42,
+  	"money" : 99.23,
+  	"longint" : 1234567891234567890,
+  	"longfloat" : 1234567890.12345678,
+  	"final" : "end"
+}

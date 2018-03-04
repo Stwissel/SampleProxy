@@ -19,52 +19,61 @@
  *                                                                            *
  * ========================================================================== *
  */
-package net.wissel.vertx.proxy.filters.json;
+package net.wissel.vertx.proxy.fiters.json;
 
+import java.io.PrintStream;
 import java.util.Collection;
 
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import net.wissel.vertx.proxy.filters.JsonSubFilter;
+import net.wissel.vertx.proxy.filters.json.JsonSelector;
 
 /**
- * get rid of Json elements based on a JSON path
- * 
  * @author swissel
  *
  */
-public class DropElements implements JsonSubFilter {
+public class TestJsonSelector {
 
-    private final JsonObject parameters;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    
-    public DropElements(final JsonObject parameters) {
-        this.parameters = parameters;
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        TestJsonSelector jts = new TestJsonSelector();
+        Vertx vertx = Vertx.vertx();
+        Buffer b = vertx.fileSystem().readFileBlocking("src/test/resources/sample.json");
+        JsonObject json = new JsonObject(b);
+        jts.runTestSuite(json);
+        System.out.println("Done");
     }
 
-    @Override
-    public void apply(final JsonObject source) {
-        String path = this.parameters.getString("path");
-
-        if (path == null) {
-            source.clear();
-            return;
-        }
-
-        Collection<Object> morituri = JsonSelector.getRequestParam(source, path);
-
-        morituri.forEach(mori -> {
-            if (mori instanceof JsonObject) {
-                ((JsonObject) mori).clear();
-            } else if (mori instanceof JsonArray) {
-                ((JsonArray) mori).clear();
+    private void runTestSuite(final JsonObject json) {
+        this.runOneTest(json, "/");
+        this.runOneTest(json, "/enemies");
+        this.runOneTest(json, "/movie");
+        this.runOneTest(json, "/bla");
+        this.runOneTest(json, "/enemies/name");
+    }
+    
+    private void runOneTest(final JsonObject json, final String path) {
+        this.echoFindings(json, path, System.out);
+    }
+    
+    private void echoFindings(final JsonObject json, final String path, final PrintStream out) {
+        out.println("--------------"+path+"--------------");
+        Collection<Object> results = JsonSelector.getElementsByPath(json, path);
+        out.println("Number of elements found:"+results.size());
+        results.forEach(o -> {
+            out.println(o.getClass().getName());
+            if (o instanceof JsonObject) {
+                out.println(((JsonObject) o).encodePrettily());
+            } else if (o instanceof JsonArray) {
+                out.println(((JsonArray) o).encodePrettily());
             } else {
-                this.logger.info("Encountered on JSONPath:"+mori.getClass().getName());
+                out.println(o);
             }
         });
-
     }
 
 }
