@@ -1,12 +1,21 @@
 title Proxy Data Flow
 participant Client
 participant Proxy
+participant FilterSelector
 participant Filter
+participant SubFilter
 participant Backend
 Client->Proxy: frontRequest\n(HttpServerRequest)
-Proxy->Backend: backRequest (HttpClientRequest)
+Proxy->FilterSelector: backRequest (HttpClientRequest)
+FilterSelector->Backend: backRequest (HttpClientRequest)
 note over Proxy,Backend: frontPump
-Backend->Filter: backResponse (HttpClientResponse)
+Backend->FilterSelector: backResponse (HttpClientResponse)
+FilterSelector->Filter: pick filter
+Filter->SubFilter: Document, JSON, String
+SubFilter->SubFilter: filterChain
+SubFilter->SubFilter: filterChain
+SubFilter->SubFilter: filterChain
+SubFilter->Filter: Document, JSON, String
 Filter->Proxy: Function(ResponseStream, ResponsStream)
 note over Proxy, Backend: backPump
 Proxy->Client: frontResponse\n(HttpServerResponse)
