@@ -48,7 +48,7 @@ public class TestJsonSelector {
 		System.out.println("Done Part 1");
 
 		Buffer b2 = vertx.fileSystem().readFileBlocking("src/test/resources/sample2.json");
-		JsonObject json2 = new JsonObject(b2);
+		JsonObject json2 = jts.getJsonObject(b2);
 		jts.runTestSuite2(json2);
 		System.out.println("Done part 2");
 	}
@@ -102,5 +102,15 @@ public class TestJsonSelector {
 		runOneTest2(json, "Email", "value");
 		runOneTest2(json, "Phone", "value");
 	}
+	
+	private JsonObject getJsonObject(final Buffer incoming) {
+        int i = 0;
+
+        while (!incoming.getString(i,i+1).equals("{")) {
+            i++;
+        }
+
+        return new JsonObject((i != 0) ? incoming.getBuffer(i, incoming.length()) : incoming);
+    }
 
 }

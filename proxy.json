@@ -54,7 +54,7 @@
                 "action" : "mask",
                 "maskPattern" : "****",
                 "unmaskedCount": 2,
-                "path": ["/eMail","/customers/fullName"]
+                "elementName": ["eMail/value","fullName/value"]
             }
         },
         {

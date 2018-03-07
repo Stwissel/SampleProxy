@@ -70,7 +70,7 @@ public class JsonFilter extends AbstractFilter {
         // Run in our own thread the actual filters working
         // on a Jsoup document to execute whatever we have in mind
         this.getVertx().executeBlocking(future -> {
-            final JsonObject json = new JsonObject(incoming);
+            final JsonObject json = this.getJsonObject(incoming);
             this.subfilters.forEach(sf -> {
                 sf.apply(json);
             });
@@ -89,4 +89,13 @@ public class JsonFilter extends AbstractFilter {
 
     }
 
+    private JsonObject getJsonObject(final Buffer incoming) {
+        int i = 0;
+
+        while (!incoming.getString(i,i+1).equals("{")) {
+            i++;
+        }
+
+        return new JsonObject((i != 0) ? incoming.getBuffer(i, incoming.length()) : incoming);
+    }
 }
