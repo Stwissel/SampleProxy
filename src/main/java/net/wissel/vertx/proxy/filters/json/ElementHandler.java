@@ -35,10 +35,10 @@ import net.wissel.vertx.proxy.filters.JsonSubFilter;
  * @author swissel
  *
  */
-public class SimpleElementHandler extends AbstractElementHandler implements JsonSubFilter {
+public class ElementHandler extends AbstractElementHandler implements JsonSubFilter {
 
     //
-    public SimpleElementHandler(final JsonObject parameters) {
+    public ElementHandler(final JsonObject parameters) {
         super(parameters);
     }
     
@@ -46,9 +46,12 @@ public class SimpleElementHandler extends AbstractElementHandler implements Json
 
     @Override
     public void apply(JsonObject source) {
-        super.apply(source);
-        this.options.path.forEach(path -> {                      
-            final Collection<Object> morituri = JsonSelector.getElementsByPath(source, path);
+        // Don't call the super here
+        this.options.elementName.forEach(path -> {
+        	String[] split = path.split("/");
+        	String elementName = split[0];
+        	String attributeName = (split.length > 1) ? split[1] : null;
+            final Collection<Object> morituri = JsonSelector.getElementsByName(source, elementName, attributeName);
             this.handleResultCollection(path, morituri);
         });
     }
@@ -59,6 +62,6 @@ public class SimpleElementHandler extends AbstractElementHandler implements Json
     protected String getLeafName(final String path, final ElementHandlerOptions opts) {
         return ("".equals(path) || "/".equals(path) || (path.lastIndexOf("/") < 0))
                 ? ""
-                : path.substring(path.lastIndexOf("/"));
+                : path.substring(path.lastIndexOf("/")+1);
     }
 }

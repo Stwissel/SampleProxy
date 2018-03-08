@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -202,7 +204,8 @@ public class FilterSelector implements Function<HttpRequestResponse, ProxyFilter
     }
 
     private boolean regexMatch(String regex, String source) {
-        // TODO Implement Regex matcher
-        return false;
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(source);
+        return matcher.matches();
     }
 }

@@ -48,14 +48,20 @@ public abstract class AbstractElementHandler implements JsonSubFilter {
         public final int                unmaskedCount;
         public final String             maskPattern;
         public final Collection<String> path = new ArrayList<>();
-
+        public final Collection<String> elementName = new ArrayList<>();
         public ElementHandlerOptions(final JsonObject parameters) {
             this.operation = parameters.getString("action", "remove");
             this.unmaskedCount = parameters.getInteger("unmaskedCount", 2);
             this.maskPattern = parameters.getString("maskPattern", "****");
             try {
                 final JsonArray pathArray = parameters.getJsonArray("path");
-                pathArray.forEach(a -> this.path.add(String.valueOf(a)));
+                if (pathArray != null) {
+                	pathArray.forEach(a -> this.path.add(String.valueOf(a)));
+                }
+                final JsonArray elementArray = parameters.getJsonArray("elementName");
+                if (elementArray != null) {
+                	elementArray.forEach(a -> this.elementName.add(String.valueOf(a)));
+                }
             } catch (final Exception e) {
                 AbstractElementHandler.this.logger.error(e.getMessage(), e);
             }
@@ -72,7 +78,7 @@ public abstract class AbstractElementHandler implements JsonSubFilter {
     @Override
     public void apply(final JsonObject source) {
 
-        if (this.options.path.isEmpty()) {
+        if (this.options.path.isEmpty() && this.options.elementName.isEmpty()) {
             source.clear();
             return;
         }
