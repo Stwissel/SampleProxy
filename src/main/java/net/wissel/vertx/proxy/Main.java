@@ -89,7 +89,10 @@ public class Main extends AbstractVerticle {
 	    this.addLocalProxy(clientOptions);
 	    
 	    if (this.params.getBoolean("useSSL", true)) {
-	        clientOptions.setSsl(true).setTrustAll(true);
+	        // Ugly to switch off trust and host check
+	        // however since we connect to one host only - bearable
+	        clientOptions.setSsl(true).setTrustAll(true).setVerifyHost(false) ;
+	        this.logger.info("Using SSL for backend connection");
 	    }
 	    
 	    final HttpClient client = vertx.createHttpClient(clientOptions);

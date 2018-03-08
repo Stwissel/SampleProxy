@@ -5,6 +5,7 @@
     "proxyHost": "localhost",
     "proxyPort": 8081,
     "targetHost": "filterdemo.dragontamer.net.00d7f000005vfmouag.live.siteforce.com",
+    "targetHost-old": "filterdemo.my.salesforce.com",
     "targetPort": 443,
     "filters": [
     {

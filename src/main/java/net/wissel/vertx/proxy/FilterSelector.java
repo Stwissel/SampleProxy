@@ -108,12 +108,16 @@ public class FilterSelector implements Function<HttpRequestResponse, ProxyFilter
      */
     @Override
     public ProxyFilter apply(HttpRequestResponse requestresponse) {
+        // TODO: React to non 2xx status codes
         HttpClientResponse response = requestresponse.response;
         HttpClientRequest request = requestresponse.request;
         String url = request.uri();
         boolean isChunked = this.getIsChunked(response);
-        String content = response.headers().get("Content-Type").toLowerCase();
-        content = content.contains(";") ? content.substring(0, content.indexOf(";")) : content;
+        String content = response.headers().get("Content-Type");
+        if (content == null) {
+            return this.getEmptyProxyFilter();
+        }
+        content = content.contains(";") ? content.substring(0, content.indexOf(";")).toLowerCase() : content.toLowerCase();
         return this.loadFilter(content, url, isChunked);
 
     }
