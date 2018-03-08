@@ -1,7 +1,7 @@
 {
     "port": 8091,
     "useSSL": false,
-    "useProxy": false,
+    "useProxy": no,
     "proxyHost": "localhost",
     "proxyPort": 8081,
     "targetHost": "www.spiegel.de",
