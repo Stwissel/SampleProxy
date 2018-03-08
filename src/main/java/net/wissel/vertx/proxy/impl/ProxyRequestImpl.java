@@ -30,6 +30,8 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
@@ -52,6 +54,7 @@ public class ProxyRequestImpl implements ProxyRequest {
         private String              etag;
         private boolean             publicCacheControl;
         private boolean             sent;
+        private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
         public ProxyResponseImpl(final SfdcHttpProxy proxy) {
             this.proxy = proxy;
@@ -108,6 +111,7 @@ public class ProxyRequestImpl implements ProxyRequest {
             
             frontResponse.exceptionHandler(err -> {
                 HttpServerRequest request = stop();
+                this.logger.error(err.getMessage(), err);
                 if (request != null) {
                     backRequest.reset();
                     completionHandler.handle(Future.failedFuture(err));
@@ -116,6 +120,7 @@ public class ProxyRequestImpl implements ProxyRequest {
 
             backResponse.exceptionHandler(err -> {
                 HttpServerRequest request = stop();
+                this.logger.error(err.getMessage(), err);
                 if (request != null) {
                     request.response().close(); // Should reset instead ????
                     completionHandler.handle(Future.failedFuture(err));
@@ -170,6 +175,8 @@ public class ProxyRequestImpl implements ProxyRequest {
                             }
                         }
                     }
+                } else {
+                	this.logger.error(handler.cause().getMessage(), handler.cause());
                 }
                 backResponse.resume();
             });
@@ -281,6 +288,8 @@ public class ProxyRequestImpl implements ProxyRequest {
         }
     }
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final SfdcHttpProxy proxy;
     private HttpServerRequest   frontRequest;
 
@@ -334,6 +343,7 @@ public class ProxyRequestImpl implements ProxyRequest {
                 ProxyResponse resp = ar.result();
                 resp.send(completionHandler);
             } else {
+            	//TODO: Log failure?
                 completionHandler.handle(ar.mapEmpty());
             }
         });
@@ -349,6 +359,7 @@ public class ProxyRequestImpl implements ProxyRequest {
             // Sends 501
             frontRequest.resume();
             completionHandler.handle(Future.failedFuture(e));
+            this.logger.error(e.getMessage(), e);
             return;
         }
 
@@ -396,6 +407,7 @@ public class ProxyRequestImpl implements ProxyRequest {
             backRequest.end();
             if (frontResponse == null) {
                 frontRequest.response().exceptionHandler(err -> {
+                	this.logger.error(err.getMessage(), err);
                     if (stop() != null) {
                         backRequest.reset();
                         completionHandler.handle(Future.failedFuture(err));
@@ -405,11 +417,13 @@ public class ProxyRequestImpl implements ProxyRequest {
         });
         requestPump = Pump.pump(bodyStream, backRequest);
         backRequest.exceptionHandler(err -> {
+        	this.logger.error(err.getMessage(), err);
             if (resetClient()) {
                 completionHandler.handle(Future.failedFuture(err));
             }
         });
         frontRequest.exceptionHandler(err -> {
+        	this.logger.error(err.getMessage(), err);
             if (stop() != null) {
                 backRequest.reset();
                 completionHandler.handle(Future.failedFuture(err));
