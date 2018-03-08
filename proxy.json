@@ -43,7 +43,7 @@
     },
     {
         "mimeType": "application/json",
-        "path": ".*listViewManagerGrid\.ListViewManagerGrid\.getRecordLayoutComponent.*",
+        "path": ".*listViewManagerGrid\\.ListViewManagerGrid\\.getRecordLayoutComponent.*",
         "regex": true,
         "class": "net.wissel.vertx.proxy.filters.JsonFilter",
         "subfilters": [
