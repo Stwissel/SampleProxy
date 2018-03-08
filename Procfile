@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -Djava.net.preferIPv4Stack=true -Dhttp.port=$PORT -jar target/net.wissel.salesforce.proxy-*-fat.jar
