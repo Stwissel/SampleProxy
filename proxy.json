@@ -1,11 +1,11 @@
 {
     "port": 8091,
-    "useSSL": false,
+    "useSSL": true,
     "useProxy": false,
     "proxyHost": "localhost",
     "proxyPort": 8081,
-    "targetHost": "www.spiegel.de",
-    "targetPort": 80,
+    "targetHost": "filterdemo.dragontamer.net.00d7f000005vfmouag.live.siteforce.com",
+    "targetPort": 443,
     "filters": [
     {
         "mimeType": "text/html",
@@ -43,18 +43,18 @@
     },
     {
         "mimeType": "application/json",
-        "path": "*",
-        "regex": false,
+        "path": ".*listViewManagerGrid\.ListViewManagerGrid\.getRecordLayoutComponent.*",
+        "regex": true,
         "class": "net.wissel.vertx.proxy.filters.JsonFilter",
         "subfilters": [
         {
-            "class": "net.wissel.vertx.proxy.filters.json.SimpleElementHandler",
+            "class": "net.wissel.vertx.proxy.filters.json.ElementHandler",
             "parameters":
             {
                 "action" : "mask",
                 "maskPattern" : "****",
                 "unmaskedCount": 2,
-                "elementName": ["eMail/value","fullName/value"]
+                "elementName": ["Email/value","Name/value"]
             }
         },
         {

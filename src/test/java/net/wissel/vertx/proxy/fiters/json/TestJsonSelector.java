@@ -28,6 +28,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import net.wissel.vertx.proxy.filters.json.ElementHandler;
 import net.wissel.vertx.proxy.filters.json.JsonSelector;
 
 /**
@@ -51,6 +52,9 @@ public class TestJsonSelector {
 		JsonObject json2 = jts.getJsonObject(b2);
 		jts.runTestSuite2(json2);
 		System.out.println("Done part 2");
+		
+		jts.runTestSuite3(json2);
+		System.out.println("Done part 3");
 	}
 
 	private void echoFindings(final JsonObject json, final String path, final PrintStream out) {
@@ -82,6 +86,16 @@ public class TestJsonSelector {
 		});
 	}
 
+	private JsonObject getJsonObject(final Buffer incoming) {
+        int i = 0;
+
+        while (!incoming.getString(i,i+1).equals("{")) {
+            i++;
+        }
+
+        return new JsonObject((i != 0) ? incoming.getBuffer(i, incoming.length()) : incoming);
+    }
+
 	private void runOneTest(final JsonObject json, final String path) {
 		echoFindings(json, path, System.out);
 	}
@@ -103,14 +117,18 @@ public class TestJsonSelector {
 		runOneTest2(json, "Phone", "value");
 	}
 	
-	private JsonObject getJsonObject(final Buffer incoming) {
-        int i = 0;
+	private void runTestSuite3(final JsonObject json) {
+		JsonObject parameters = new JsonObject();
+		parameters.put("action", "mask");
+		JsonArray a = new JsonArray();
+		a.add("Email/value");
+		a.add("Name/value");
+		parameters.put("elementName",a);
 
-        while (!incoming.getString(i,i+1).equals("{")) {
-            i++;
-        }
-
-        return new JsonObject((i != 0) ? incoming.getBuffer(i, incoming.length()) : incoming);
-    }
+		ElementHandler h = new ElementHandler(parameters);
+		h.apply(json);
+		System.out.println(json.encodePrettily());
+		
+	}
 
 }
