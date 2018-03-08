@@ -85,17 +85,13 @@ public class Main extends AbstractVerticle {
 	    HttpClientOptions clientOptions = new HttpClientOptions().setMaxInitialLineLength(10000).setLogActivity(true)
                 .setTryUseCompression(true);
 	    
-	    if (this.config().getBoolean("useProxy", false)) {
-	        ProxyOptions proxyOptions = new ProxyOptions()
-	                .setHost(this.params.getString("proxyHost", "localhost"))
-	                .setPort(this.params.getInteger("proxyPort", 8080))
-	                .setType(ProxyType.HTTP);
-	        clientOptions.setProxyOptions(proxyOptions);
-        }
+	    // Does the proxy talk to a proxy?
+	    this.addLocalProxy(clientOptions);
 	    
 	    if (this.params.getBoolean("useSSL", true)) {
 	        clientOptions.setSsl(true).setTrustAll(true);
 	    }
+	    
 	    final HttpClient client = vertx.createHttpClient(clientOptions);
 		final SfdcHttpProxy proxy = SfdcHttpProxy
 		        .reverseProxy(client)
@@ -124,6 +120,58 @@ public class Main extends AbstractVerticle {
 			}
 		});
 
+	}
+
+	/**
+	 * Adds a local proxy when useProxy = true
+	 * or an environment variable HTTP_PROXY is found
+	 * 
+	 * @param clientOptions to be updated options
+	 */
+	private void addLocalProxy(HttpClientOptions clientOptions) {
+		boolean needToAdd = false;
+		String host = "localhost";
+		int port = 8080;
+		String environmentProxy = System.getenv("HTTP_PROXY");
+		boolean configProxy = this.config().getBoolean("useProxy", false);
+		
+		if (environmentProxy != null) {
+			needToAdd = true;
+			// Strip protocol and slashes etc if provided
+			String[] hostPortFragments = environmentProxy.split("/");
+			for (int i = 0; i < hostPortFragments.length; i++) {
+				// looking for the part with the : but not http: or https:
+				String curFrag = hostPortFragments[i];
+				if (!curFrag.startsWith("https:") 
+					&& !curFrag.startsWith("http:")
+					&& curFrag.indexOf(":") > 0) {
+					String[] hostPortSplit = curFrag.split(":");
+					host = hostPortSplit[0];
+					try {
+					port = (hostPortSplit.length > 1)
+							? Integer.valueOf(hostPortSplit[1])
+							: port;
+					} catch (Throwable t) {
+						this.logger.error(t);
+					}
+					
+					break;
+				}
+			}
+		} else {
+			needToAdd = configProxy;
+			host = this.params.getString("proxyHost", "localhost");
+			port = this.params.getInteger("proxyPort", 8080);
+		}
+		
+		if (needToAdd) {
+	        ProxyOptions proxyOptions = new ProxyOptions()
+	                .setHost(host)
+	                .setPort(port)
+	                .setType(ProxyType.HTTP);
+	        clientOptions.setProxyOptions(proxyOptions);
+	        this.logger.info("Local proxy ["+host+"] added on port "+port);
+        }
 	}
 
 }

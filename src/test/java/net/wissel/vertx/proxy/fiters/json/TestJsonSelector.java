@@ -36,44 +36,81 @@ import net.wissel.vertx.proxy.filters.json.JsonSelector;
  */
 public class TestJsonSelector {
 
-    /**
-     * @param args
-     */
-    public static void main(String[] args) {
-        TestJsonSelector jts = new TestJsonSelector();
-        Vertx vertx = Vertx.vertx();
-        Buffer b = vertx.fileSystem().readFileBlocking("src/test/resources/sample.json");
-        JsonObject json = new JsonObject(b);
-        jts.runTestSuite(json);
-        System.out.println("Done");
-    }
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		TestJsonSelector jts = new TestJsonSelector();
+		Vertx vertx = Vertx.vertx();
+		Buffer b = vertx.fileSystem().readFileBlocking("src/test/resources/sample.json");
+		JsonObject json = new JsonObject(b);
+		jts.runTestSuite(json);
+		System.out.println("Done Part 1");
 
-    private void runTestSuite(final JsonObject json) {
-        this.runOneTest(json, "/");
-        this.runOneTest(json, "/enemies");
-        this.runOneTest(json, "/movie");
-        this.runOneTest(json, "/bla");
-        this.runOneTest(json, "/enemies/name");
-    }
-    
-    private void runOneTest(final JsonObject json, final String path) {
-        this.echoFindings(json, path, System.out);
-    }
-    
-    private void echoFindings(final JsonObject json, final String path, final PrintStream out) {
-        out.println("--------------"+path+"--------------");
-        Collection<Object> results = JsonSelector.getElementsByPath(json, path);
-        out.println("Number of elements found:"+results.size());
-        results.forEach(o -> {
-            out.println(o.getClass().getName());
-            if (o instanceof JsonObject) {
-                out.println(((JsonObject) o).encodePrettily());
-            } else if (o instanceof JsonArray) {
-                out.println(((JsonArray) o).encodePrettily());
-            } else {
-                out.println(o);
-            }
-        });
+		Buffer b2 = vertx.fileSystem().readFileBlocking("src/test/resources/sample2.json");
+		JsonObject json2 = jts.getJsonObject(b2);
+		jts.runTestSuite2(json2);
+		System.out.println("Done part 2");
+	}
+
+	private void echoFindings(final JsonObject json, final String path, final PrintStream out) {
+		out.println("--------------" + path + "--------------");
+		Collection<Object> results = JsonSelector.getElementsByPath(json, path);
+		out.println("Number of elements found:" + results.size());
+		results.forEach(o -> {
+			out.println(o.getClass().getName());
+			if (o instanceof JsonObject) {
+				out.println(((JsonObject) o).encodePrettily());
+			} else if (o instanceof JsonArray) {
+				out.println(((JsonArray) o).encodePrettily());
+			} else {
+				out.println(o);
+			}
+		});
+	}
+
+	private void echoFindings2(final JsonObject json, final String elementName, final String attributeName, final PrintStream out) {
+		out.println("--------------" + elementName + "--------------");
+		Collection<Object> results = JsonSelector.getElementsByName(json, elementName, attributeName);
+		out.println("Number of elements found:" + results.size());
+		results.forEach(o -> {
+			if (o instanceof JsonObject) {
+				out.println(((JsonObject) o).encodePrettily());
+			} else {
+				out.println(o);
+			}
+		});
+	}
+
+	private void runOneTest(final JsonObject json, final String path) {
+		echoFindings(json, path, System.out);
+	}
+
+	private void runOneTest2(final JsonObject json, final String elementName, final String attributeName) {
+		echoFindings2(json, elementName, attributeName, System.out);
+	}
+
+	private void runTestSuite(final JsonObject json) {
+		runOneTest(json, "/");
+		runOneTest(json, "/enemies");
+		runOneTest(json, "/movie");
+		runOneTest(json, "/bla");
+		runOneTest(json, "/enemies/name");
+	}
+
+	private void runTestSuite2(final JsonObject json) {
+		runOneTest2(json, "Email", "value");
+		runOneTest2(json, "Phone", "value");
+	}
+	
+	private JsonObject getJsonObject(final Buffer incoming) {
+        int i = 0;
+
+        while (!incoming.getString(i,i+1).equals("{")) {
+            i++;
+        }
+
+        return new JsonObject((i != 0) ? incoming.getBuffer(i, incoming.length()) : incoming);
     }
 
 }

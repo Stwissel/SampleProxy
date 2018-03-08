@@ -9,14 +9,14 @@
     "filters": [
     {
         "mimeType": "text/html",
-        "path": "/",
+        "path": "*",
         "regex": false,
         "class": "net.wissel.vertx.proxy.filters.HtmlFilter",
         "subfilters": [
         {
-            "class": "net.wissel.vertx.proxy.filters.html.DropElements",
+            "class": "net.wissel.vertx.proxy.filters.html.DropLinks",
             "parameters": {
-                "name" : "hr"
+                "fullremove" : false
             }
         },
         {
@@ -54,7 +54,7 @@
                 "action" : "mask",
                 "maskPattern" : "****",
                 "unmaskedCount": 2,
-                "path": ["/eMail","/customers/fullName"]
+                "elementName": ["eMail/value","fullName/value"]
             }
         },
         {
