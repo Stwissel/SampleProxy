@@ -10,40 +10,6 @@
     "targetPort": 443,
     "filters": [
     {
-        "mimeType": "text/html",
-        "path": "*",
-        "regex": false,
-        "class": "net.wissel.vertx.proxy.filters.HtmlFilter",
-        "subfilters": [
-        {
-            "class": "net.wissel.vertx.proxy.filters.html.DropLinks",
-            "parameters": {
-                "fullremove" : false
-            }
-        },
-        {
-            "class": "net.wissel.vertx.proxy.filters.html.DropElements",
-            "parameters":
-            {
-                "name": "script"
-            }
-        },
-        {
-            "class": "net.wissel.vertx.proxy.filters.html.DropElements",
-            "parameters":
-            {
-                "name": "img"
-            }
-        }]
-    },
-    {
-        "mimeType": "text/plain",
-        "path": "*",
-        "regex": false,
-        "class": "net.wissel.vertx.proxy.filters.TextFilter",
-        "subfilters": []
-    },
-    {
         "mimeType": "application/json",
         "path": ".*listViewManagerGrid\\.ListViewManagerGrid\\.getRecordLayoutComponent.*",
         "regex": true,
@@ -77,5 +43,40 @@
         }
        ]
     }],
-    "deactivatedFilters": []
+    "deactivatedFilters": [
+    {
+        "mimeType": "text/html",
+        "path": "*",
+        "regex": false,
+        "class": "net.wissel.vertx.proxy.filters.HtmlFilter",
+        "subfilters": [
+        {
+            "class": "net.wissel.vertx.proxy.filters.html.DropLinks",
+            "parameters": {
+                "fullremove" : false
+            }
+        },
+        {
+            "class": "net.wissel.vertx.proxy.filters.html.DropElements",
+            "parameters":
+            {
+                "name": "script"
+            }
+        },
+        {
+            "class": "net.wissel.vertx.proxy.filters.html.DropElements",
+            "parameters":
+            {
+                "name": "img"
+            }
+        }]
+    },
+    {
+        "mimeType": "text/plain",
+        "path": "*",
+        "regex": false,
+        "class": "net.wissel.vertx.proxy.filters.TextFilter",
+        "subfilters": []
+    }
+    ]
 }
