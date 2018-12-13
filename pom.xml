@@ -3,14 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.wissel.salesforce</groupId>
 	<artifactId>net.wissel.salesforce.proxy</artifactId>
-	<version>0.5.0-SNAPSHOT</version>
+	<version>0.5.1-SNAPSHOT</version>
 	<name>Salesforce filtering proxy</name>
 	<description>Filters data coming from Salesforce</description>
 
 	<properties>
 		<!-- Software versions -->
 		<java.version>1.8</java.version>
-		<vertx.version>3.5.1</vertx.version>
+		<vertx.version>3.6.0</vertx.version>
 		<joda.version>2.9.9</joda.version>
 		<mustache.version>0.9.5</mustache.version>
 		<junit.version>4.12</junit.version>
