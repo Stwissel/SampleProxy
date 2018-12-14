@@ -97,6 +97,12 @@ public abstract class AbstractFilter implements ProxyFilter {
                 raw.resume();
                 return this;
             }
+
+            @Override
+            public ReadStream<Buffer> fetch(long amount) {
+                raw.fetch(amount);
+                return this;
+            }
         };
 
         return Future.succeededFuture(result);

@@ -20,6 +20,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.http.StreamPriority;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
 
@@ -221,4 +222,22 @@ class CachedHttpServerRequest implements HttpServerRequest {
   public HttpConnection connection() {
     throw new UnsupportedOperationException();
   }
+
+@Override
+public HttpServerRequest fetch(long amount) {
+    this.request.fetch(amount);
+    return this;
+}
+
+@Override
+public long bytesRead() {
+    return this.request.bytesRead();
+}
+
+@Override
+public HttpServerRequest streamPriorityHandler(Handler<StreamPriority> handler) {
+    this.request.streamPriorityHandler(handler);
+    
+    return this;
+}
 }

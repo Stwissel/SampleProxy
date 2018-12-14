@@ -29,6 +29,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.StreamPriority;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.net.impl.SocketAddressImpl;
@@ -115,6 +116,12 @@ public class SfdcHttpProxyImpl implements SfdcHttpProxy {
 					s.resume();
 					return this;
 				}
+
+                @Override
+                public ReadStream<Buffer> fetch(long amount) {
+                    s.fetch(amount);
+                    return this;
+                }
 			};
 		}
 
@@ -332,6 +339,16 @@ public class SfdcHttpProxyImpl implements SfdcHttpProxy {
 				public boolean writeQueueFull() {
 					return false;
 				}
+
+                @Override
+                public HttpClientRequest fetch(long amount) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public StreamPriority getStreamPriority() {
+                    throw new UnsupportedOperationException();
+                }
 			};
 		}
 
@@ -441,6 +458,16 @@ public class SfdcHttpProxyImpl implements SfdcHttpProxy {
 				public HttpVersion version() {
 					throw new UnsupportedOperationException();
 				}
+
+                @Override
+                public HttpClientResponse fetch(long amount) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public HttpClientResponse streamPriorityHandler(Handler<StreamPriority> handler) {
+                    throw new UnsupportedOperationException();
+                }
 			};
 		}
 
